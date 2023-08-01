@@ -1,6 +1,5 @@
 import { CustomDB, idbIsSupported, deleteDB } from 'idb-managed';
 import { dateFormat2Day, M_BYTE, sizeOf, getStartOfDay, dayFormat2Date } from './utils';
-import { ResultMsg } from '../interface';
 const DAN_DB_VERSION = 1;
 const LOG_DETAIL_TABLE_NAME = 'dan_detail_table';
 const LOG_DETAIL_REPORTNAME_INDEX = 'logReportName';
@@ -135,7 +134,10 @@ export default class DanDB {
             }
         };
         if (todayInfo.totalSize + logSize > DEFAULT_SINGLE_DAY_MAX_SIZE) {
-            throw new Error(ResultMsg.EXCEED_LOG_SIZE_LIMIT);
+            /**
+             * todo: delete old log days
+             */
+            
         }
         if (!todayInfo.reportPagesInfo || !todayInfo.reportPagesInfo.pageSizes) {
             todayInfo.reportPagesInfo = { pageSizes: [0] };

@@ -68,10 +68,14 @@ class WebMonitor extends Monitor {
             this.beforeLoginQueue.push(log);
         }
     }
-    async reportLog(reportConfig: ReportConfig = { fromDayString: getStartDay(), toDayString: getEndDay() }): Promise<ReportResult> {
-        //todo
+    async reportLog(reportConfig: ReportConfig = { fromDayString: getStartDay(), toDayString: getEndDay() }): Promise<ReportResult|void> {
+        /**
+         * todo
+         * 向服务器发送请求查询是否需要上传日志以及弹出确认框让用户确认上传
+         */
+
         return await invokeInQueue(async () => {
-            const logDaysInfoList: DanLogDayItem[] = await this.danDB!.getLogDaysInfo(
+            const logDaysInfoList: DanLogDayItem[] = await this.danDB.getLogDaysInfo(
                 reportConfig.fromDayString,
                 reportConfig.toDayString
             );

@@ -27,7 +27,7 @@ export default abstract class Monitor {
         this.userid = userid;
     }
     abstract log(msg: any): Promise<void>;
-    abstract reportLog(reportConfig: ReportConfig): Promise<ReportResult>;
+    abstract reportLog(reportConfig: ReportConfig): Promise<ReportResult|void>;
     protected abstract initPlugins(plugins: Plugin[]): void;
     protected abstract initSender(senderType: string, endpoint: string): void;
     abstract destroy(): void;
