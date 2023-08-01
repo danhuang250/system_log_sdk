@@ -9,6 +9,9 @@ export type FormattedLogReportName = string;
 const DEFAULT_LOG_DURATION = 7 * 24 * 3600 * 1000; // logan-web keeps 7 days logs locally
 const DEFAULT_SINGLE_DAY_MAX_SIZE = 7 * M_BYTE; // 7M storage limit for one day
 const DEFAULT_SINGLE_PAGE_MAX_SIZE = 1 * M_BYTE; // 1M storage limit for one page
+// const DEFAULT_SINGLE_PAGE_MAX_SIZE = 1 * 103; // 1M storage limit for one page
+// const DEFAULT_SINGLE_DAY_MAX_SIZE = 2* 103; // 7M storage limit for one day
+
 
 interface LogReportNameParsedOb {
     logDay: string;
@@ -27,10 +30,10 @@ export interface DanLogDayItem {
         pageSizes: number[]; // Array of pageSize of each page.
     };
 }
-export function getStartDay(){
-    return dateFormat2Day(new Date(Date.now()-DEFAULT_LOG_DURATION));
+export function getStartDay() {
+    return dateFormat2Day(new Date(Date.now() - DEFAULT_LOG_DURATION));
 }
-export function getEndDay(){
+export function getEndDay() {
     return dateFormat2Day(new Date());
 }
 
@@ -62,26 +65,26 @@ export default class DanDB {
      * @param logDay
      * @param pageIndex start from 0
      */
-    logReportNameFormatter (
+    logReportNameFormatter(
         logDay: string,
         pageIndex: number
     ): FormattedLogReportName {
         return `${logDay}_${pageIndex}`;
     }
-    logReportNameParser (reportName: FormattedLogReportName): LogReportNameParsedOb {
+    logReportNameParser(reportName: FormattedLogReportName): LogReportNameParsedOb {
         const splitArray = reportName.split('_');
         return {
             logDay: splitArray[0],
             pageIndex: +splitArray[1]
         };
     }
-    async getLogDayInfo (logDay: string): Promise<DanLogDayItem | null> {
+    async getLogDayInfo(logDay: string): Promise<DanLogDayItem | null> {
         return ((await this.DB.getItem(
             LOG_DAY_TABLE_NAME,
             logDay
         )) as any) as DanLogDayItem | null;
     }
-    async getLogDaysInfo (
+    async getLogDaysInfo(
         fromLogDay: string,
         toLogDay: string
     ): Promise<DanLogDayItem[]> {
@@ -104,7 +107,7 @@ export default class DanDB {
             })) as any[]) as DanLogDayItem[];
         }
     }
-    async getLogsByReportName (
+    async getLogsByReportName(
         reportName: FormattedLogReportName
     ): Promise<DanLogItem[]> {
         const logs = ((await this.DB.getItemsInRange({
@@ -120,7 +123,7 @@ export default class DanDB {
      * 
      * @param logString 
      */
-    async addLog (logString: string): Promise<void> {
+    async addLog(logString: string): Promise<void> {
         const logSize = sizeOf(logString);
         const now = new Date();
         const today: string = dateFormat2Day(now);
@@ -137,7 +140,17 @@ export default class DanDB {
             /**
              * todo: delete old log days
              */
-            
+            let index = 0;
+            for (let i = 0; i < todayInfo.reportPagesInfo.pageSizes.length; i++) {
+                if (todayInfo.reportPagesInfo.pageSizes[i] > 0) {
+                    index = i;
+                    break;
+                }
+            }
+            // delete the first page
+            await this.deleteLogs(today, [index]);
+            todayInfo.totalSize -= todayInfo.reportPagesInfo.pageSizes[index];
+            todayInfo.reportPagesInfo.pageSizes[index] = 0;
         }
         if (!todayInfo.reportPagesInfo || !todayInfo.reportPagesInfo.pageSizes) {
             todayInfo.reportPagesInfo = { pageSizes: [0] };
@@ -191,7 +204,7 @@ export default class DanDB {
     /**
      * Delete reported pages of logDay, in case that new pages are added after last report.
      */
-    async deleteLogs (logDay: string, reportedPageIndexes: number[]): Promise<void> {
+    async deleteLogs(logDay: string, reportedPageIndexes: number[]): Promise<void> {
         const dayInfo: DanLogDayItem | null = await this.getLogDayInfo(logDay);
         if (dayInfo && dayInfo.reportPagesInfo && dayInfo.reportPagesInfo.pageSizes instanceof Array) {
             const currentPageSizesArr = dayInfo.reportPagesInfo.pageSizes;
@@ -203,7 +216,7 @@ export default class DanDB {
                     return accSize;
                 }
             }, 0);
-            const pageSizesArrayWithNewPage = (function addNewPageIfLastPageIsReported (): number[] {
+            const pageSizesArrayWithNewPage = (function addNewPageIfLastPageIsReported(): number[] {
                 // Add a new page with 0 page size if the last page is reported.
                 if (reportedPageIndexes.indexOf(currentPageSizesArr.length - 1) >= 0) {
                     return currentPageSizesArr.concat([0]);
