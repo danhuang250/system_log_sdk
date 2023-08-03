@@ -1,6 +1,7 @@
 type MiliSeconds = number;
 export const K_BYTE = 1024;
 export const M_BYTE = 1024 * K_BYTE;
+// 根据字符的 Unicode 编码范围来计算字符的字节长度
 export function sizeOf (str: string): number {
     let total = 0;
     for (let i = 0, len = str.length; i < len; i++) {

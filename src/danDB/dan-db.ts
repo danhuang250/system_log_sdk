@@ -138,8 +138,9 @@ export default class DanDB {
         };
         if (todayInfo.totalSize + logSize > DEFAULT_SINGLE_DAY_MAX_SIZE) {
             /**
-             * todo: delete old log days
+             * delete old log by logReportName at today
              */
+            //找到最早sizeof不是0的分页片段
             let index = 0;
             for (let i = 0; i < todayInfo.reportPagesInfo.pageSizes.length; i++) {
                 if (todayInfo.reportPagesInfo.pageSizes[i] > 0) {
@@ -147,7 +148,6 @@ export default class DanDB {
                     break;
                 }
             }
-            // delete the first page
             await this.deleteLogs(today, [index]);
             todayInfo.totalSize -= todayInfo.reportPagesInfo.pageSizes[index];
             todayInfo.reportPagesInfo.pageSizes[index] = 0;
@@ -185,7 +185,6 @@ export default class DanDB {
                 pageSizes: nextPageSizesArr
             }
         };
-        // The expire time is the start of the day after 7 days.
         const durationBeforeExpired =
             DEFAULT_LOG_DURATION - (+new Date() - getStartOfDay(new Date()));
         await this.DB.addItems([
@@ -217,7 +216,7 @@ export default class DanDB {
                 }
             }, 0);
             const pageSizesArrayWithNewPage = (function addNewPageIfLastPageIsReported(): number[] {
-                // Add a new page with 0 page size if the last page is reported.
+                // 新增一页，如果最后一页是已经上报的。 （为了是已经上报的片段不再增加数据）
                 if (reportedPageIndexes.indexOf(currentPageSizesArr.length - 1) >= 0) {
                     return currentPageSizesArr.concat([0]);
                 } else {
@@ -231,7 +230,7 @@ export default class DanDB {
                     return accSizesArray.concat([currentSize]);
                 }
             }, [] as number[]);
-            // Update dayInfo with new pageSizeArray and new totalSize
+            // 更新dayInfo
             const updatedDayInfo = {
                 ...dayInfo,
                 reportPagesInfo: {
@@ -239,7 +238,7 @@ export default class DanDB {
                 },
                 totalSize: Math.max(currentTotalSize - totalReportedSize, 0)
             };
-            // The expire time is the start of the day after 7 days.
+            // 过期时间还是logDay的后七天凌晨0点  所以不是 7*24*60*60000
             const durationBeforeExpired = DEFAULT_LOG_DURATION - (+new Date() - getStartOfDay(new Date())) - (getStartOfDay(new Date()) - dayFormat2Date(logDay).getTime());
             await this.DB.addItems([
                 {
@@ -248,7 +247,7 @@ export default class DanDB {
                     itemDuration: durationBeforeExpired
                 }
             ]);
-            // Delete logs of reported pages by iterating reportedPageIndexes.
+            // 删除已经上报的页的日志
             for (const pageIndex of reportedPageIndexes) {
                 await this.DB.deleteItemsInRange([
                     {
