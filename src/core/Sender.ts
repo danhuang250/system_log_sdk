@@ -2,6 +2,7 @@ export interface Sender<T> {
     endpoint: string,
     instance: T;
     send(data: UploadData): Promise<SendResult>;
+    canSend(): Promise<boolean>;
 }
 
 export interface SendResult { code: string, msg: string }

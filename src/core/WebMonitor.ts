@@ -7,7 +7,7 @@ import { ReportConfig, ReportResult, ResultMsg, StandardLog } from "@/interface"
 import { invokeInQueue } from "@/utils/operation-queue";
 import DanDB, { DanLogDayItem, FormattedLogReportName, LOG_DAY_TABLE_PRIMARY_KEY, getEndDay, getStartDay } from "@/danDB/dan-db";
 import { ONE_DAY_TIME_SPAN, dateFormat2Day, dayFormat2Date } from "@/danDB/utils";
-const DEFAULT_ENDPOINT = "https://bdul0j.laf.dev/logger"
+const DEFAULT_ENDPOINT='http://175.178.76.218:9092/api/'
 type WebSenderType = "xhr" | "beacon";
 type SenderOption = {
     endpoint?: string,
@@ -73,7 +73,11 @@ class WebMonitor extends Monitor {
          * todo
          * 向服务器发送请求查询是否需要上传日志以及弹出确认框让用户确认上传
          */
-
+        //  let can= await this.senderInstance.canSend();
+        //  if(!can) return;
+        //  弹出输提示框
+        let confirm = window.confirm('是否上传日志');
+        if (!confirm) return;
         return await invokeInQueue(async () => {
             const logDaysInfoList: DanLogDayItem[] = await this.danDB.getLogDaysInfo(
                 reportConfig.fromDayString,

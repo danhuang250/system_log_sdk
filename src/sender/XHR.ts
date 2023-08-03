@@ -1,4 +1,4 @@
-import { SendResult, Sender, UploadData } from "@/core/Sender"
+import { CodeStatus, SendResult, Sender, UploadData } from "@/core/Sender"
 import WebMonitor from "@/core/WebMonitor";
 export class XHRSender implements Sender<WebMonitor>{
     endpoint: string;
@@ -12,8 +12,9 @@ export class XHRSender implements Sender<WebMonitor>{
     }
 
     async send(data: UploadData): Promise<SendResult> {
+        console.log(data)
         return Ajax(
-            this.endpoint,
+            this.endpoint + '/logUpload',
             data,
             false,
             'POST',
@@ -23,15 +24,37 @@ export class XHRSender implements Sender<WebMonitor>{
             }
         )
     }
+
+    async canSend(): Promise<boolean> {
+        try {
+            var res = await Ajax(
+                this.endpoint + 'isExist',
+            )
+        } catch (_e) {
+            return false;
+        }
+        if (res.code === CodeStatus.success) {
+            return true;
+        }
+        return false;
+    }
 }
 
-
+/**
+ * 
+ * @param url 
+ * @param data 
+ * @param withCredentials 是否带上cookie
+ * @param type 
+ * @param headers 
+ * @returns 
+ */
 async function Ajax(url: string, data?: any, withCredentials?: boolean, type?: 'GET' | 'POST' | string, headers?: Record<string, any>): Promise<any> {
     return new Promise((resolve, reject) => {
         XHR({
             url,
             type: type || 'GET',
-            data,
+            data: JSON.stringify(data),
             withCredentials: !!withCredentials,
             headers: headers,
             success: (responseText: any) => {
