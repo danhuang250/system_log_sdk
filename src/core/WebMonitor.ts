@@ -7,7 +7,7 @@ import { ReportConfig, ReportResult, ResultMsg, StandardLog } from "@/interface"
 import { invokeInQueue } from "@/utils/operation-queue";
 import DanDB, { DanLogDayItem, FormattedLogReportName, LOG_DAY_TABLE_PRIMARY_KEY, getEndDay, getStartDay } from "@/danDB/dan-db";
 import { ONE_DAY_TIME_SPAN, dateFormat2Day, dayFormat2Date } from "@/danDB/utils";
-const DEFAULT_ENDPOINT='http://175.178.76.218:9092/api/'
+const DEFAULT_ENDPOINT = 'http://175.178.76.218:9092/api/'
 type WebSenderType = "xhr" | "beacon";
 type SenderOption = {
     endpoint?: string,
@@ -25,8 +25,8 @@ class WebMonitor extends Monitor {
             userid?: string
         } & SenderOption
     ) {
-        const { endpoint=DEFAULT_ENDPOINT, senderType = 'xhr', userid, appid } = options;
-        super(appid, endpoint , userid)
+        const { endpoint = DEFAULT_ENDPOINT, senderType = 'xhr', userid, appid } = options;
+        super(appid, endpoint, userid)
         this.initSender(senderType, endpoint);
         this.initPlugins(options.plugins);
         if (userid) {
@@ -68,13 +68,13 @@ class WebMonitor extends Monitor {
             this.beforeLoginQueue.push(log);
         }
     }
-    async reportLog(reportConfig: ReportConfig = { fromDayString: getStartDay(), toDayString: getEndDay() }): Promise<ReportResult|void> {
+    async reportLog(reportConfig: ReportConfig = { fromDayString: getStartDay(), toDayString: getEndDay() }): Promise<ReportResult | void> {
         /**
          * todo
          * 向服务器发送请求查询是否需要上传日志以及弹出确认框让用户确认上传
          */
-        //  let can= await this.senderInstance.canSend();
-        //  if(!can) return;
+        let can = await this.senderInstance.canSend({ appid: this.appid, userid: this.userid! });
+        if (!can) return;
         //  弹出输提示框
         let confirm = window.confirm('是否上传日志');
         if (!confirm) return;
@@ -148,9 +148,9 @@ class WebMonitor extends Monitor {
         const logItems = await this.danDB!.getLogsByReportName(reportName);
         if (logItems.length > 0) {
             const logItemStrings = logItems
-            .map(logItem => {
-                return logItem.logString
-            });
+                .map(logItem => {
+                    return logItem.logString
+                });
             const pageIndex = this.danDB!.logReportNameParser(reportName).pageIndex;
             let data = {
                 appid: this.appid,
@@ -180,7 +180,6 @@ class WebMonitor extends Monitor {
         this.initDB(this.appid, uid);
     }
     isStandardLog(msg: any): msg is StandardLog {
-
         return typeof msg.type === 'number' && typeof msg.msg === 'string';
 
     }

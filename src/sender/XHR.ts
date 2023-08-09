@@ -1,4 +1,4 @@
-import { CodeStatus, SendResult, Sender, UploadData } from "@/core/Sender"
+import { CodeStatus, SendResult, Sender, UploadData, UserInfo, } from "@/core/Sender"
 import WebMonitor from "@/core/WebMonitor";
 export class XHRSender implements Sender<WebMonitor>{
     endpoint: string;
@@ -25,10 +25,17 @@ export class XHRSender implements Sender<WebMonitor>{
         )
     }
 
-    async canSend(): Promise<boolean> {
+    async canSend(data:UserInfo): Promise<boolean> {
         try {
             var res = await Ajax(
                 this.endpoint + 'isExist',
+                data,
+                false,
+                "POST",
+                {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json,text/javascript'
+                }
             )
         } catch (_e) {
             return false;
