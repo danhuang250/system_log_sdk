@@ -74,7 +74,9 @@ class WebMonitor extends Monitor {
          * 向服务器发送请求查询是否需要上传日志以及弹出确认框让用户确认上传
          */
         let can = await this.senderInstance.canSend({ appid: this.appid, userid: this.userid! });
-        if (!can) return;
+        if (!can) { 
+            console.log("不需要上传日志")
+            return };
         //  弹出输提示框
         let confirm = window.confirm('是否上传日志');
         if (!confirm) return;
@@ -149,7 +151,7 @@ class WebMonitor extends Monitor {
         if (logItems.length > 0) {
             const logItemStrings = logItems
                 .map(logItem => {
-                    return logItem.logString
+                    return  JSON.parse(logItem.logString)
                 });
             const pageIndex = this.danDB!.logReportNameParser(reportName).pageIndex;
             let data = {

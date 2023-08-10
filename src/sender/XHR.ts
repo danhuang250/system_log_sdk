@@ -14,7 +14,7 @@ export class XHRSender implements Sender<WebMonitor>{
     async send(data: UploadData): Promise<SendResult> {
         console.log(data)
         return Ajax(
-            this.endpoint + '/logUpload',
+            this.endpoint + 'logUpload',
             data,
             false,
             'POST',
@@ -65,7 +65,7 @@ async function Ajax(url: string, data?: any, withCredentials?: boolean, type?: '
             withCredentials: !!withCredentials,
             headers: headers,
             success: (responseText: any) => {
-                resolve(responseText);
+                resolve(JSON.parse(responseText));
             },
             fail: (err: string) => {
                 reject(new Error(err || 'Request failed'));
