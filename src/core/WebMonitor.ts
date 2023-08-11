@@ -3,7 +3,7 @@ import { Plugin } from "./Plugin";
 import { XHRSender } from '@/sender/XHR';
 import { CodeStatus, Sender } from "./Sender";
 import Monitor from "./Monitor";
-import { ReportConfig, ReportResult, ResultMsg, StandardLog } from "@/interface";
+import { MustLogKey, ReportConfig, ReportResult, ResultMsg, StandardLog } from "@/interface";
 import { invokeInQueue } from "@/utils/operation-queue";
 import DanDB, { DanLogDayItem, FormattedLogReportName, LOG_DAY_TABLE_PRIMARY_KEY, getEndDay, getStartDay } from "@/danDB/dan-db";
 import { ONE_DAY_TIME_SPAN, dateFormat2Day, dayFormat2Date } from "@/danDB/utils";
@@ -54,6 +54,8 @@ class WebMonitor extends Monitor {
                 msg: JSON.stringify(msg)
             }
         }
+        // 把除了type和msg和timestamp之外的字段都放进msg的extra里
+        msg = this.formatLog(msg);
         msg.timestamp = +new Date();
         let log = JSON.stringify(msg);
         if (typeof this.danDB !== 'undefined') {
@@ -74,9 +76,10 @@ class WebMonitor extends Monitor {
          * 向服务器发送请求查询是否需要上传日志以及弹出确认框让用户确认上传
          */
         let can = await this.senderInstance.canSend({ appid: this.appid, userid: this.userid! });
-        if (!can) { 
+        if (!can) {
             console.log("不需要上传日志")
-            return };
+            return
+        };
         //  弹出输提示框
         let confirm = window.confirm('是否上传日志');
         if (!confirm) return;
@@ -151,7 +154,7 @@ class WebMonitor extends Monitor {
         if (logItems.length > 0) {
             const logItemStrings = logItems
                 .map(logItem => {
-                    return  JSON.parse(logItem.logString)
+                    return JSON.parse(logItem.logString)
                 });
             const pageIndex = this.danDB!.logReportNameParser(reportName).pageIndex;
             let data = {
@@ -176,6 +179,18 @@ class WebMonitor extends Monitor {
         } else {
             return Promise.resolve(null);
         }
+    }
+    // 把除了type和msg和timestamp之外的字段都放进msg的extra里
+    formatLog(log: StandardLog) {
+        let res = {} as StandardLog;
+        for (let key of MustLogKey) {
+            res[key] = log[key];
+        }
+        res.extra = log;
+        for (let key of MustLogKey) {
+          delete res.extra[key];
+        }
+        return res;
     }
     setUid(uid: string) {
         this.userid = uid;
