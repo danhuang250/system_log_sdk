@@ -6,11 +6,10 @@ const LOG_DETAIL_REPORTNAME_INDEX = 'logReportName';
 const LOG_DAY_TABLE_NAME = 'log_day_table';
 export const LOG_DAY_TABLE_PRIMARY_KEY = 'logDay';
 export type FormattedLogReportName = string;
-const DEFAULT_LOG_DURATION = 7 * 24 * 3600 * 1000; // logan-web keeps 7 days logs locally
-const DEFAULT_SINGLE_DAY_MAX_SIZE = 7 * M_BYTE; // 7M storage limit for one day
-const DEFAULT_SINGLE_PAGE_MAX_SIZE = 1 * M_BYTE; // 1M storage limit for one page
-// const DEFAULT_SINGLE_PAGE_MAX_SIZE = 1 * 103; // 1M storage limit for one page
-// const DEFAULT_SINGLE_DAY_MAX_SIZE = 2* 103; // 7M storage limit for one day
+var DAY_DURATION = 24 * 3600 * 1000
+var DEFAULT_LOG_DURATION = 7 * DAY_DURATION; // logan-web keeps 7 days logs locally
+var DEFAULT_SINGLE_DAY_MAX_SIZE = 7 * M_BYTE; // 7M storage limit for one day
+var DEFAULT_SINGLE_PAGE_MAX_SIZE = 1 * M_BYTE; // 1M storage limit for one page
 
 
 interface LogReportNameParsedOb {
@@ -21,6 +20,15 @@ interface DanLogItem {
     [LOG_DETAIL_REPORTNAME_INDEX]: string;
     logSize: number;
     logString: string;
+}
+
+export interface DanDBOptions {
+    /**
+     *  保存天数 default 7  
+     */
+    logDuration?: number;
+    singleDayMaxSize?: number;
+    singlePageMaxSize?: number;
 }
 
 export interface DanLogDayItem {
@@ -41,7 +49,20 @@ export default class DanDB {
     public static idbIsSupported = idbIsSupported;
     public static deleteDB = deleteDB;
     private DB: CustomDB;
-    constructor(dbName: string) {
+    constructor(dbName: string, options?: DanDBOptions) {
+
+        if (options) {
+            if (options.logDuration) {
+                DEFAULT_LOG_DURATION = options.logDuration * DAY_DURATION;
+            }
+            if (options.singleDayMaxSize) {
+                DEFAULT_SINGLE_DAY_MAX_SIZE = options.singleDayMaxSize;
+            }
+            if (options.singlePageMaxSize) {
+                DEFAULT_SINGLE_PAGE_MAX_SIZE = options.singlePageMaxSize;
+            }
+        }
+
         this.DB = new CustomDB({
             dbName: dbName,
             dbVersion: DAN_DB_VERSION,

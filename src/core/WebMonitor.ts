@@ -5,7 +5,7 @@ import { CodeStatus, Sender } from "./Sender";
 import Monitor from "./Monitor";
 import { MustLogKey, ReportConfig, ReportResult, ResultMsg, StandardLog } from "@/interface";
 import { invokeInQueue } from "@/utils/operation-queue";
-import DanDB, { DanLogDayItem, FormattedLogReportName, LOG_DAY_TABLE_PRIMARY_KEY, getEndDay, getStartDay } from "@/danDB/dan-db";
+import DanDB, { DanDBOptions, DanLogDayItem, FormattedLogReportName, LOG_DAY_TABLE_PRIMARY_KEY, getEndDay, getStartDay } from "@/danDB/dan-db";
 import { ONE_DAY_TIME_SPAN, dateFormat2Day, dayFormat2Date } from "@/danDB/utils";
 const DEFAULT_ENDPOINT = 'http://175.178.76.218:9092/api/'
 type WebSenderType = "xhr" | "beacon";
@@ -17,24 +17,31 @@ type SenderOption = {
 class WebMonitor extends Monitor {
     private senderInstance!: Sender<WebMonitor>; // 处理存储/压缩之类的具体逻辑
     private danDB!: DanDB;
+    private danDBOptions: DanDBOptions;
     private beforeLoginQueue: string[] = [];
     constructor(
         options: {
             appid: string,
             plugins?: Plugin[]
             userid?: string
-        } & SenderOption
+        } & SenderOption & DanDBOptions
     ) {
         const { endpoint = DEFAULT_ENDPOINT, senderType = 'xhr', userid, appid } = options;
         super(appid, endpoint, userid)
         this.initSender(senderType, endpoint);
         this.initPlugins(options.plugins);
+        // 初始化本地存储配置项
+        this.danDBOptions = {
+            logDuration: options.logDuration,
+            singleDayMaxSize: options.singleDayMaxSize,
+            singlePageMaxSize: options.singlePageMaxSize,
+        }
         if (userid) {
-            this.initDB(appid, userid);
+            this.initDB(appid, userid,);
         }
     }
     private initDB(appid: string, userid: string) {
-        let db = this.danDB = new DanDB(this.danDBNameFormatter(appid, userid));
+        let db = this.danDB = new DanDB(this.danDBNameFormatter(appid, userid), this.danDBOptions);
         // 把beforeLoginQueue队列里的数据都存到db里
         for (let msg of this.beforeLoginQueue) {
             invokeInQueue(async () => {
@@ -45,6 +52,7 @@ class WebMonitor extends Monitor {
         }
         this.beforeLoginQueue = [];
         // 登录时自动查询是否要上报
+        // 开发者模式先去掉 
         this.reportLog();
     }
     async log(msg: any) {
@@ -98,6 +106,7 @@ class WebMonitor extends Monitor {
                     [logDayInfo[
                         LOG_DAY_TABLE_PRIMARY_KEY
                     ]]: logDayInfo.reportPagesInfo ? logDayInfo.reportPagesInfo.pageSizes.map((_i, pageIndex) => {
+                        console.log(logDayInfo[LOG_DAY_TABLE_PRIMARY_KEY], "日志信息大小：", logDayInfo.totalSize)
                         return this.danDB!.logReportNameFormatter(
                             logDayInfo[LOG_DAY_TABLE_PRIMARY_KEY],
                             pageIndex
@@ -116,6 +125,8 @@ class WebMonitor extends Monitor {
             ) {
                 const logDay = dateFormat2Day(new Date(logTime));
                 if (logReportMap[logDay] && logReportMap[logDay].length > 0) {
+
+
                     try {
                         const batchReportResults = await Promise.all(
                             logReportMap[logDay].map(reportName => {
@@ -188,7 +199,7 @@ class WebMonitor extends Monitor {
         }
         res.extra = log;
         for (let key of MustLogKey) {
-          delete res.extra[key];
+            delete res.extra[key];
         }
         return res;
     }
