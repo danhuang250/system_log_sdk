@@ -6,15 +6,16 @@
   ],
   "main": "./dist/dan-log.umd.cjs",
   "module": "./dist/dan-log.es.js",
-  "typings": "dist/index.d.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/dan-log.js",
       "require": "./dist/dan-log.umd.cjs"
     }
   },
-  "private": true,
-  "version": "0.0.0",
+  "license": "ISC",
+  "description": "A simple logger for the browser",
+  "version": "0.0.1",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
