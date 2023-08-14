@@ -15,7 +15,7 @@
   },
   "license": "ISC",
   "description": "A simple logger for the browser",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
