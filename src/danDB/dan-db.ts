@@ -52,7 +52,7 @@ export default class DanDB {
     constructor(dbName: string, options?: DanDBOptions) {
 
         if (options) {
-            if (options.logDuration) {
+            if (options.logDuration !== undefined) {
                 DEFAULT_LOG_DURATION = options.logDuration * DAY_DURATION;
             }
             if (options.singleDayMaxSize) {
@@ -206,8 +206,11 @@ export default class DanDB {
                 pageSizes: nextPageSizesArr
             }
         };
-        const durationBeforeExpired =
+        var durationBeforeExpired =
             DEFAULT_LOG_DURATION - (+new Date() - getStartOfDay(new Date()));
+        if (durationBeforeExpired < 0) {
+            durationBeforeExpired = 0
+        }
         await this.DB.addItems([
             {
                 tableName: LOG_DAY_TABLE_NAME,
