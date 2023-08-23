@@ -133,7 +133,7 @@ class WebMonitor extends Monitor {
                                 return this.getLogAndSend(reportName, reportConfig);
                             })
                         );
-                        reportResult[logDay] = { msg: ResultMsg.REPORT_LOG_SUCC };
+                        reportResult[logDay] = { msg: ResultMsg.REPORT_LOG_SUCC,pages:batchReportResults.filter((reportedPageIndex) => reportedPageIndex !== null) as number[] };
                         try {
                             const reportedPageIndexes = batchReportResults.filter((reportedPageIndex) => reportedPageIndex !== null) as number[];
                             if (reportedPageIndexes.length > 0) {

@@ -7,7 +7,7 @@
  */
 export interface ReportResult {
     [key: string]: {
-        msg: ResultMsg; desc?: string;
+        msg: ResultMsg; desc?: string; pages?: number[];
     };
 }
 
