@@ -6,10 +6,50 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vite + TS</title>
+
 </head>
 
 <body>
-  <div id="app"></div>
-  <script type="module" src="/src/index.ts"></script>
+  <div id="app">
+    <button onclick="developLog()"> 开发者上传普通信息</button>
+    <button onclick="developLog()"> 开发者上传规整化信息</button>
+    <button onclick="errorLog()"> 模拟js报错</button>
+    <button onclick="consoleResult()"> 上传</button>
+    <div id="resultDisplay"
+      style="display:block;margin-top:20px;word-wrap:break-word;word-break: break-all;white-space: pre-wrap;"></div>
+  </div>
+
+  <script type="module" src="/src/test.ts" defer></script>
+  <script defer>
+    function developLog() {
+      for (let i = 0; i < 10; i++) {
+        wm.log(
+          `开发者主动上传信息${i}`,
+        )
+      }
+    }
+    function developFormatLog() {
+      for (let i = 0; i < 10; i++) {
+        wm.log(
+          { type: 0, msg: `开发者主动上传规整化信息${i}`, }
+        )
+      }
+    }
+    function errorLog() {
+      consoleResult.log(a.a.a)        
+    }
+    function consoleResult() {
+      wm.reportLog().then((ob) => {
+        debugger
+        document.getElementById('resultDisplay').innerHTML +=
+          (ob instanceof Error
+            ? 'Error!' + (ob.message || ob.stack)
+            : typeof ob === 'object'
+              ? JSON.stringify(ob)
+              : ob) + '\n';
+      });
+    }
+  </script>
 </body>
+
 </html>

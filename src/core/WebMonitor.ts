@@ -78,7 +78,7 @@ class WebMonitor extends Monitor {
             this.beforeLoginQueue.push(log);
         }
     }
-    async reportLog(reportConfig: ReportConfig = { fromDayString: getStartDay(), toDayString: getEndDay() }): Promise<ReportResult | void> {
+    async reportLog(reportConfig: ReportConfig = { fromDayString: getStartDay(), toDayString: getEndDay() }): Promise<ReportResult> {
         /**
          * todo
          * 向服务器发送请求查询是否需要上传日志以及弹出确认框让用户确认上传
@@ -86,11 +86,11 @@ class WebMonitor extends Monitor {
         let can = await this.senderInstance.canSend({ appid: this.appid, userid: this.userid! });
         if (!can) {
             console.log("不需要上传日志")
-            return
+            return Promise.resolve({});
         };
         //  弹出输提示框
         let confirm = window.confirm('是否上传日志');
-        if (!confirm) return;
+        if (!confirm) return Promise.resolve({});
         return await invokeInQueue(async () => {
             const logDaysInfoList: DanLogDayItem[] = await this.danDB.getLogDaysInfo(
                 reportConfig.fromDayString,
