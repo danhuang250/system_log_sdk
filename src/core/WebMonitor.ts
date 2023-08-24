@@ -7,6 +7,8 @@ import { MustLogKey, ReportConfig, ReportResult, ResultMsg, StandardLog } from "
 import { invokeInQueue } from "@/utils/operation-queue";
 import DanDB, { DanDBOptions, DanLogDayItem, FormattedLogReportName, LOG_DAY_TABLE_PRIMARY_KEY, getEndDay, getStartDay } from "@/danDB/dan-db";
 import { ONE_DAY_TIME_SPAN, dateFormat2Day, dayFormat2Date } from "@/danDB/utils";
+import { App } from 'vue'
+import { VueErrorPlugin } from "@/plugins/vueError";
 const DEFAULT_ENDPOINT = 'http://175.178.76.218:9092/api/'
 type WebSenderType = "xhr" | "beacon";
 type SenderOption = {
@@ -203,10 +205,6 @@ class WebMonitor extends Monitor {
         }
         return res;
     }
-    setUid(uid: string) {
-        this.userid = uid;
-        this.initDB(this.appid, uid);
-    }
     isStandardLog(msg: any): msg is StandardLog {
         return typeof msg.type === 'number' && typeof msg.msg === 'string';
 
@@ -224,6 +222,13 @@ class WebMonitor extends Monitor {
     ]) {
         this.plugins = plugins;
         this.plugins.forEach(plugin => plugin.run());
+    }
+    setUid(uid: string) {
+        this.userid = uid;
+        this.initDB(this.appid, uid);
+    }
+    setVueApp(app: App) {
+        new VueErrorPlugin(this, app).run();
     }
     destroy() {
         this.plugins.forEach(plugin => plugin.unload && plugin.unload())
