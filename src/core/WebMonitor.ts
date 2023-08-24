@@ -43,6 +43,9 @@ class WebMonitor extends Monitor {
         }
     }
     private initDB(appid: string, userid: string) {
+        if(this.danDB){
+            return this.danDB;
+        }
         let db = this.danDB = new DanDB(this.danDBNameFormatter(appid, userid), this.danDBOptions);
         // 把beforeLoginQueue队列里的数据都存到db里
         for (let msg of this.beforeLoginQueue) {
