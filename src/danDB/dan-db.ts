@@ -39,7 +39,8 @@ export interface DanLogDayItem {
     };
 }
 export function getStartDay() {
-    return dateFormat2Day(new Date(Date.now() - DEFAULT_LOG_DURATION));
+
+    return dateFormat2Day(new Date(Date.now() - DEFAULT_LOG_DURATION + (DEFAULT_LOG_DURATION === 0 ? 0 : DAY_DURATION)));
 }
 export function getEndDay() {
     return dateFormat2Day(new Date());

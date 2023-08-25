@@ -40,7 +40,6 @@
     }
     function consoleResult() {
       wm.reportLog().then((ob) => {
-        debugger
         document.getElementById('resultDisplay').innerHTML +=
           (ob instanceof Error
             ? 'Error!' + (ob.message || ob.stack)

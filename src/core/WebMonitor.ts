@@ -199,6 +199,7 @@ class WebMonitor extends Monitor {
     }
     formatLog(log: StandardLog) {
     // 把除了type和msg和timestamp之外的字段都放进msg的extra里
+
         let res = {} as StandardLog;
         for (let key of MustLogKey) {
             res[key] = log[key];
