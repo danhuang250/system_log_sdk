@@ -43,7 +43,7 @@ class WebMonitor extends Monitor {
         }
     }
     private initDB(appid: string, userid: string) {
-        if(this.danDB){
+        if (this.danDB) {
             return this.danDB;
         }
         let db = this.danDB = new DanDB(this.danDBNameFormatter(appid, userid), this.danDBOptions);
@@ -61,15 +61,17 @@ class WebMonitor extends Monitor {
         this.reportLog();
     }
     async log(msg: any) {
+        console.log("rawLog信息", msg)
         if (!this.isStandardLog(msg)) {
             msg = {
                 type: 0,
-                msg: JSON.stringify(msg)
+                msg: typeof msg === "string" ? msg : JSON.stringify(msg)
             }
         }
         // 把除了type和msg和timestamp之外的字段都放进msg的extra里
         msg = this.formatLog(msg);
         msg.timestamp = +new Date();
+        console.log("log信息", msg)
         let log = JSON.stringify(msg);
         if (typeof this.danDB !== 'undefined') {
             // 如果本地存储实例存在
@@ -138,7 +140,7 @@ class WebMonitor extends Monitor {
                                 return this.getLogAndSend(reportName, reportConfig);
                             })
                         );
-                        reportResult[logDay] = { msg: ResultMsg.REPORT_LOG_SUCC,pages:batchReportResults.filter((reportedPageIndex) => reportedPageIndex !== null) as number[] };
+                        reportResult[logDay] = { msg: ResultMsg.REPORT_LOG_SUCC, pages: batchReportResults.filter((reportedPageIndex) => reportedPageIndex !== null) as number[] };
                         try {
                             const reportedPageIndexes = batchReportResults.filter((reportedPageIndex) => reportedPageIndex !== null) as number[];
                             if (reportedPageIndexes.length > 0) {
@@ -163,7 +165,6 @@ class WebMonitor extends Monitor {
     }
     /**
      * @returns Promise<number> with reported pageIndex if this page has logs, otherwise Promise<null>.
-     * 
      */
     private async getLogAndSend(reportName: string, _reportConfig?: ReportConfig): Promise<number | null> {
         const logItems = await this.danDB!.getLogsByReportName(reportName);
@@ -196,8 +197,8 @@ class WebMonitor extends Monitor {
             return Promise.resolve(null);
         }
     }
-    // 把除了type和msg和timestamp之外的字段都放进msg的extra里
     formatLog(log: StandardLog) {
+    // 把除了type和msg和timestamp之外的字段都放进msg的extra里
         let res = {} as StandardLog;
         for (let key of MustLogKey) {
             res[key] = log[key];
